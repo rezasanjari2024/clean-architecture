@@ -1,7 +1,8 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
 import { GetUserUseCase } from '../../application/use-cases/get-user.usecase';
 import { GenericRepository } from '../../infrastructure/repositories/generic.repository';
 import { User } from '../../domain/entities/user.entity';
+import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
 
 @Controller('users')
 export class UserController {
@@ -21,11 +22,14 @@ export class UserController {
   @Get(':id')
   async getUser(@Param('id') id: string) {
     const user = await this.getUserUseCase.execute(Number(id));
-    return user ?? { message: 'User not found' };
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
   @Get()
   async get() {
     const user = await this.getUserUseCase.findAll();
-    return user ?? { message: 'User not found' };
+    return user;
   }
 }

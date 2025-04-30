@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Notification App</title>
+</head>
+<body>
+  <h1>🔔 Notification System</h1>
+
+  <form id="notifForm">
+    <input type="text" id="title" placeholder="عنوان" required />
+    <input type="text" id="message" placeholder="پیام" required />
+    <button type="submit">ارسال نوتیف</button>
+  </form>
+
+  <h2>📬 نوتیف‌های دریافتی:</h2>
+  <ul id="notifList"></ul>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
+    const socket = io("http://localhost:3000");
+
+    socket.on("connect", () => {
+      console.log("✅ متصل به سرور");
+    });
+
+    socket.on("newNotification", (data) => {
+      console.log("📢 نوتیف جدید:", data);
+      const notifList = document.getElementById("notifList");
+      const item = document.createElement("li");
+      item.textContent = `${data.title}: ${data.message}`;
+      notifList.appendChild(item);
+    });
+
+    document.getElementById("notifForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const title = document.getElementById("title").value;
+      const message = document.getElementById("message").value;
+
+      try {
+        const response = await fetch("http://localhost:3000/notifications", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ title, message })
+        });
+
+        if (!response.ok) {
+          throw new Error("خطا در ارسال نوتیف");
+        }
+
+        document.getElementById("title").value = "";
+        document.getElementById("message").value = "";
+      } catch (error) {
+        console.error("❌ ارسال ناموفق:", error);
+        alert("ارسال نوتیف با خطا مواجه شد.");
+      }
+    });
+  </script>
+</body>
+</html>

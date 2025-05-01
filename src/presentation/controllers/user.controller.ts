@@ -1,9 +1,15 @@
-import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+} from '@nestjs/common';
 import { GetUserUseCase } from '../../application/use-cases/get-user.usecase';
 import { GenericRepository } from '../../infrastructure/repositories/generic.repository';
 import { User } from '../../domain/entities/user.entity';
 import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
-
+import * as Sentry from '@sentry/node';
 @Controller('users')
 export class UserController {
   private readonly getUserUseCase: GetUserUseCase;
@@ -21,15 +27,29 @@ export class UserController {
 
   @Get(':id')
   async getUser(@Param('id') id: string) {
-    const user = await this.getUserUseCase.execute(Number(id));
-    if (!user) {
-      throw new NotFoundException('User not found');
+    try {
+      const user = await this.getUserUseCase.execute(Number(id));
+      if (!user) {
+        throw new Error('خطای تستی برای Sentry');
+      }
+      return user;
+    } catch (error) {
+      Sentry.captureException(error);
+      throw error;
     }
-    return user;
   }
   @Get()
   async get() {
     const user = await this.getUserUseCase.findAll();
     return user;
+  }
+  @Get('test-error')
+  testError() {
+    try {
+      throw new Error('خطای تستی برای Sentry');
+    } catch (error) {
+      Sentry.captureException(error);
+      throw error;
+    }
   }
 }

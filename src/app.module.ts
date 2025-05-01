@@ -7,10 +7,17 @@ import { User } from './domain/entities/user.entity';
 import { NotificationGateway } from './presentation/gateways/notification.gateway';
 import { NotificationRepository } from './infrastructure/repositories/notification.repository';
 import { NotificationController } from './presentation/controllers/notification.controller';
+import { MessageController } from './presentation/controllers/message.controller';
+import { ChatGateway } from './presentation/gateways/chat.gateway';
 
 @Module({
   imports: [],
-  controllers: [AppController, UserController, NotificationController],
+  controllers: [
+    AppController,
+    UserController,
+    NotificationController,
+    MessageController,
+  ],
   providers: [
     AppService,
     {
@@ -18,6 +25,7 @@ import { NotificationController } from './presentation/controllers/notification.
       useClass: GenericRepository<User>,
     },
     NotificationGateway,
+    ChatGateway,
     NotificationRepository,
   ],
 })

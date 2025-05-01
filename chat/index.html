@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8" />
+  <title>چت خصوصی ساده</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      direction: rtl;
+      background: #f9f9f9;
+      padding: 20px;
+    }
+
+    #login, #chat {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    input, button {
+      padding: 10px;
+      margin: 5px 0;
+      width: 100%;
+      font-size: 16px;
+    }
+
+    #messages {
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 8px;
+      background: #f0f0f0;
+    }
+
+    .message {
+      margin-bottom: 10px;
+      padding: 5px;
+      border-radius: 10px;
+    }
+
+    .message.self {
+      background: #d1f5d3;
+      text-align: left;
+    }
+
+    .message.other {
+      background: #e4e4e4;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+
+<div id="login">
+  <h2>ورود به چت</h2>
+  <input type="text" id="userIdInput" placeholder="آی‌دی خودت رو وارد کن (مثلاً user1)">
+  <button onclick="login()">ورود</button>
+</div>
+
+<div id="chat" style="display: none;">
+  <h2>چت خصوصی</h2>
+  <p>کاربر وارد شده: <span id="currentUserId"></span></p>
+  <input type="text" id="receiverInput" placeholder="آی‌دی گیرنده (مثلاً user2)">
+  <div id="messages"></div>
+  <input type="text" id="messageInput" placeholder="پیام بنویس...">
+  <button onclick="sendMessage()">📨 ارسال</button>
+</div>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+  let socket;
+  let currentUserId = null;
+
+  function login() {
+    const userId = document.getElementById('userIdInput').value.trim();
+    if (!userId) {
+      alert('آی‌دی باید وارد بشه!');
+      return;
+    }
+    localStorage.setItem('userId', userId);
+    startChat(userId);
+  }
+
+  function startChat(userId) {
+    currentUserId = userId;
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('chat').style.display = 'block';
+    document.getElementById('currentUserId').innerText = userId;
+
+    // اتصال به سرور Socket.io
+    socket = io('http://localhost:3000', {
+      query: { userId: userId }
+    });
+
+    socket.on('connect', () => {
+      console.log('✅ اتصال برقرار شد.');
+    });
+
+    socket.on('new_message', (msg) => {
+      showMessage(msg);
+    });
+  }
+
+  function sendMessage() {
+    const receiverId = document.getElementById('receiverInput').value.trim();
+    const content = document.getElementById('messageInput').value.trim();
+
+    if (!receiverId || !content) {
+      alert('گیرنده و پیام را کامل وارد کن.');
+      return;
+    }
+
+    const msg = {
+      senderId: currentUserId,
+      receiverId: receiverId,
+      content: content,
+      timestamp: new Date().toISOString()
+    };
+
+    socket.emit('send_message', msg);
+   
+    document.getElementById('messageInput').value = '';
+  }
+
+  function showMessage(msg) {
+    const msgDiv = document.createElement('div');
+    msgDiv.classList.add('message');
+
+    if (msg.senderId === currentUserId) {
+      msgDiv.classList.add('self');
+    } else {
+      msgDiv.classList.add('other');
+    }
+
+    msgDiv.innerHTML = `<strong>${msg.senderId}:</strong> ${msg.content}`;
+    document.getElementById('messages').appendChild(msgDiv);
+    document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+  }
+
+  // بررسی ورود قبلی
+  window.onload = () => {
+    const savedId = localStorage.getItem('userId');
+    if (savedId) {
+      startChat(savedId);
+    }
+  };
+</script>
+
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8" />
+  <title>قیمت لحظه‌ای دلار</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding-top: 50px;
+    }
+    #price {
+      font-size: 48px;
+      color: green;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>💸 قیمت لحظه‌ای دلار</h1>
+  <div id="price">در حال بارگذاری...</div>
+
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <script>
+    const socket = io('http://localhost:3000');
+
+    socket.on('price', (data) => {
+      document.getElementById('price').textContent = new Intl.NumberFormat('fa-IR').format(data.price) + ' تومان';
+    });
+  </script>
+</body>
+</html>

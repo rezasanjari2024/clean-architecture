@@ -10,6 +10,9 @@ import { NotificationController } from './presentation/controllers/notification.
 import { MessageController } from './presentation/controllers/message.controller';
 import { ChatGateway } from './presentation/gateways/chat.gateway';
 
+import { PriceGateway } from './presentation/gateways/price.gateway';
+import { NobitexService } from './services/nobitex.service';
+
 @Module({
   imports: [],
   controllers: [
@@ -27,6 +30,8 @@ import { ChatGateway } from './presentation/gateways/chat.gateway';
     NotificationGateway,
     ChatGateway,
     NotificationRepository,
+    PriceGateway,
+    NobitexService,
   ],
 })
 export class AppModule {}
